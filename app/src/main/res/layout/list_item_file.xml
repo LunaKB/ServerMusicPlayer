@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/on_pressed">
+
+    <TextView
+        android:id="@+id/list_item_directory"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="8dp"
+        android:gravity="center_horizontal"
+        android:background="@drawable/on_pressed"
+        android:text="File Name here"/>
+
+</LinearLayout>
