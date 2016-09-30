@@ -1,5 +1,7 @@
 package com.moncrieffe.android.servermusicplayer;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -13,6 +15,7 @@ import android.util.Log;
 import com.moncrieffe.android.servermusicplayer.Song.Song;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Chaz-Rae on 9/8/2016.
@@ -22,7 +25,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private static final int NOTIFY_ID = 1;
     private final IBinder mMusicBind = new MusicBinder();
     private MediaPlayer mMediaPlayer;
+    private String mSongTitle = "";
     private List<Song> mSongs;
+    private UUID mUUID;
+    private String mDirectory;
     private int mPosition;
     private String mUrl;
 
@@ -54,6 +60,24 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public void onPrepared(MediaPlayer mp) {
         mp.start();
+
+        Intent notIntent = MusicListActivity.newIntent(this, mDirectory, mUUID);
+        notIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendInt = PendingIntent.getActivity(this, 0,
+                notIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Notification.Builder builder = new Notification.Builder(this);
+
+        builder.setContentIntent(pendInt)
+                .setSmallIcon(R.drawable.notification_play)
+                .setTicker(mSongTitle)
+                .setOngoing(true)
+                .setContentTitle("Playing")
+                .setContentText(mSongTitle);
+        Notification not = builder.build();
+
+        startForeground(NOTIFY_ID, not);
+
         // Broadcast intent to activity to let it know the media player has been prepared
         Intent onPreparedIntent = new Intent("MEDIA_PLAYER_PREPARED");
         LocalBroadcastManager.getInstance(this).sendBroadcast(onPreparedIntent);
@@ -69,6 +93,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
+        Log.i("mediaPlayer", "int what: " + what + "; int extra: " + extra);
         mp.reset();
         return false;
     }
@@ -80,6 +105,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         //get song
         String playUri = mUrl + mSongs.get(mPosition).getName();
         playUri = playUri.replace(" ", "%20");
+        mSongTitle = mSongs.get(mPosition).getName().replace(".mp3", "");
+
         try {
             mMediaPlayer.setDataSource(playUri);
         }
@@ -103,9 +130,11 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mMediaPlayer.setOnErrorListener(this);
     }
 
-    public void setList(List<Song> songs, String webAddress, String directory){
+    public void setList(List<Song> songs, String webAddress, String directory, UUID uuid){
         mSongs = songs;
         mUrl = webAddress + directory + "/";
+        mDirectory = directory;
+        mUUID = uuid;
     }
 
     public class MusicBinder extends Binder {

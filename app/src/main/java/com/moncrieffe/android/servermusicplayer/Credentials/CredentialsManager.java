@@ -13,9 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Created by Chaz-Rae on 9/7/2016.
- */
 public class CredentialsManager {
     private static CredentialsManager sCredentialsManager;
     private Context mContext;

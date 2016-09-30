@@ -177,7 +177,7 @@ public class SongDownloader<T> extends HandlerThread {
 
     private void preloadSongData(List<Song> songs){
         for(Song s:songs){
-            if(mCache.get(s.getUrl()) == null){
+            if(mCache.get(s.getUrl()) == null && mHasQuit){
                 FFmpegMediaMetadataRetriever mmr = new FFmpegMediaMetadataRetriever();
                 String songUrl = s.getUrl().replace(" ", "%20");
                 mmr.setDataSource(songUrl);

@@ -34,6 +34,7 @@ import com.moncrieffe.android.servermusicplayer.Credentials.CredentialsManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import com.moncrieffe.android.servermusicplayer.HTTP.ServerFetcher;
 import com.moncrieffe.android.servermusicplayer.Song.Song;
@@ -166,8 +167,11 @@ public class MusicListFragment extends Fragment implements MediaController.Media
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
+        getActivity().stopService(playIntent);
+        mMusicSrv = null;
+        getActivity().unbindService(musicConnection);
         mSongDownloader.quit();
+        super.onDestroy();
     }
 
     @Override
@@ -197,7 +201,7 @@ public class MusicListFragment extends Fragment implements MediaController.Media
             //get service
             mMusicSrv = binder.getService();
             //pass list
-            mMusicSrv.setList(mSongList, mCredentials.getWebaddress(), mDirectory);
+            mMusicSrv.setList(mSongList, mCredentials.getWebaddress(), mDirectory, mUUID);
             musicBound = true;
         }
 
@@ -378,8 +382,13 @@ public class MusicListFragment extends Fragment implements MediaController.Media
         @Override
         public void onReceive(Context c, Intent i) {
             // When music player has been prepared, show controller
-            mController.show(0);
-            updateSubtitle(mMusicSrv.getCurrentPlayingSongName());
+            try{
+                mController.show(0);
+                updateSubtitle(mMusicSrv.getCurrentPlayingSongName());
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
         }
     };
 

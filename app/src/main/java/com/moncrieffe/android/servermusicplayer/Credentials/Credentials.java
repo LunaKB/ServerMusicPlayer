@@ -2,9 +2,6 @@ package com.moncrieffe.android.servermusicplayer.Credentials;
 
 import java.util.UUID;
 
-/**
- * Created by Chaz-Rae on 9/7/2016.
- */
 public class Credentials {
     private UUID mID;
     private String mWebaddress;
@@ -27,7 +24,4 @@ public class Credentials {
         return mWebaddress;
     }
 
-    public void setWebaddress(String webaddress) {
-        mWebaddress = webaddress;
-    }
 }
