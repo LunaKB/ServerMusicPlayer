@@ -98,7 +98,7 @@ public class SongDownloader<T> extends HandlerThread {
     }
 
     public void queueSong(T target, Song song){
-        Log.i(TAG, "Got a song " + song.getName());
+        Log.i(TAG, "Got a song " + song.getUrl());
 
         if(song == null){
             mRequestMap.remove(target);
@@ -157,17 +157,15 @@ public class SongDownloader<T> extends HandlerThread {
             FFmpegMediaMetadataRetriever mmr = new FFmpegMediaMetadataRetriever();
             String songUrl = song.getUrl().replace(" ", "%20");
             mmr.setDataSource(songUrl);
+            String title = mmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_TITLE);
             String artist = mmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_ARTIST);
             String album = mmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_ALBUM);
-
-            String url = song.getUrl().replace(song.getName(), "");
-            url = url.replace(" ", "%20");
-            String artwork = url + album.replace(" ", "%20") + "-image.jpg";
+            String artwork = artworkUrl(song.getUrl(), album);
 
             mmr.release();
 
 
-            updatedSong = new Song(song.getUrl(), song.getName(), song.getDirectory(), artist, album, artwork);
+            updatedSong = new Song(song.getUrl(), title, song.getDirectory(), artist, album, artwork);
             mCache.put(updatedSong.getUrl(), updatedSong);
             Log.i(TAG, "Song updated");
         }
@@ -181,20 +179,43 @@ public class SongDownloader<T> extends HandlerThread {
                 FFmpegMediaMetadataRetriever mmr = new FFmpegMediaMetadataRetriever();
                 String songUrl = s.getUrl().replace(" ", "%20");
                 mmr.setDataSource(songUrl);
+                String title = mmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_TITLE);
                 String artist = mmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_ARTIST);
                 String album = mmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_ALBUM);
-
-                String url = s.getUrl().replace(s.getName(), "");
-                url = url.replace(" ", "%20");
-                String artwork = url + album.replace(" ", "%20") + "-image.jpg";
+                String artwork = artworkUrl(s.getUrl(), album);
 
                 mmr.release();
 
 
-                Song updatedSong = new Song(s.getUrl(), s.getName(), s.getDirectory(), artist, album, artwork);
+                Song updatedSong = new Song(s.getUrl(), title, s.getDirectory(), artist, album, artwork);
                 mCache.put(updatedSong.getUrl(), updatedSong);
-                Log.i(TAG, "Cache preloaded with " + updatedSong.getName());
+                Log.i(TAG, "Cache preloaded with " + updatedSong.getTitle());
             }
         }
+    }
+
+    private String artworkUrl(String url, String album){
+        char[] charUrl = url.toCharArray();
+        char[] charReverse;
+        String replaceReverse = "";
+        String replace = "";
+
+        for(int i = charUrl.length - 1; i > -1; i--){
+            if(charUrl[i] == '/') {
+                break;
+            }
+            else{
+                replaceReverse += charUrl[i];
+            }
+        }
+
+        charReverse = replaceReverse.toCharArray();
+        for(int i = charReverse.length - 1; i > -1; i--){
+            replace += charReverse[i];
+        }
+
+        String finalUrl = url.replace(replace, "") + album + "-image.jpg";
+        finalUrl = finalUrl.replace(" ", "%20");
+        return finalUrl;
     }
 }

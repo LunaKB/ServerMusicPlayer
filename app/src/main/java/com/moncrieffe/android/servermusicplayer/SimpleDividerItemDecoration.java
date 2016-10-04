@@ -8,11 +8,13 @@ import android.view.View;
 
 /**
  * Created by Chaz-Rae on 9/29/2016.
+ *
  */
 public class SimpleDividerItemDecoration extends RecyclerView.ItemDecoration {
     private Drawable mDivider;
 
     public SimpleDividerItemDecoration(Context context) {
+        //noinspection deprecation
         mDivider = context.getResources().getDrawable(R.drawable.line_divider);
     }
 

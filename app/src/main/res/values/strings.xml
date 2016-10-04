@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">Server Music Player</string>
+
+    <!-- Login -->
+    <string name="login_title_image_description">Server Music Player Title</string>
+    <string name="login_web_server_details">Enter Web Server Details</string>
+    <string name="login_web_address_title">Address</string>
+    <string name="login_connect_go_button">Connect</string>
+
+    <!-- Music List Item -->
+    <string name="list_item_album_image_description">Album Artwork</string>
 </resources>

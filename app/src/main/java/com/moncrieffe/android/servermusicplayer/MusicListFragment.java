@@ -1,46 +1,28 @@
 package com.moncrieffe.android.servermusicplayer;
 
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
-import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.moncrieffe.android.servermusicplayer.Credentials.Credentials;
-import com.moncrieffe.android.servermusicplayer.Credentials.CredentialsManager;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 import com.moncrieffe.android.servermusicplayer.HTTP.ServerFetcher;
 import com.moncrieffe.android.servermusicplayer.Song.Song;
 import com.moncrieffe.android.servermusicplayer.Song.SongDownloader;
 import com.moncrieffe.android.servermusicplayer.Song.SongManager;
-import com.moncrieffe.android.servermusicplayer.MusicService.MusicBinder;
 import com.squareup.picasso.Picasso;
 
 /**
@@ -49,25 +31,22 @@ import com.squareup.picasso.Picasso;
  * Media controller shows at bottom of RecyclerView
  * AsyncTask gets list of songs
  */
-public class MusicListFragment extends Fragment implements MediaController.MediaPlayerControl{
+public class MusicListFragment extends Fragment {
     private static final String ARG_DIRECTORY = "directory";
     private static final String ARG_ID = "id";
 
     private String mDirectory;
-    private UUID mUUID;
     private RecyclerView mRecyclerView;
     private List<Song> mSongList = new ArrayList<>();
-    private Credentials mCredentials;
-
-    private MusicService mMusicSrv;
-    private Intent playIntent;
-    private boolean musicBound=false;
-    private MusicController mController;
-    private boolean paused=false, playbackPaused=false;
+    private Callbacks mCallbacks;
 
     private ServerFetcher mServerFetcher;
     private ProgressDialog progressDialog;
     private SongDownloader<FileHolder> mSongDownloader;
+
+    public interface Callbacks{
+        void onSongSelected(Song song);
+    }
 
     /* Gets a new MusicListFragment for the songs in the specified directory */
     public static MusicListFragment newInstance(String directory, UUID id){
@@ -81,16 +60,26 @@ public class MusicListFragment extends Fragment implements MediaController.Media
         return fragment;
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mCallbacks = (Callbacks) context;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mCallbacks = null;
+    }
+
     /* Methods from support.v4.fragment */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
 
         mDirectory = getArguments().getString(ARG_DIRECTORY);
-        mUUID = (UUID)getArguments().getSerializable(ARG_ID);
-        mCredentials = CredentialsManager.get(getActivity()).getCredentials(mUUID);
-        mServerFetcher = new ServerFetcher(mUUID, getActivity());
+        UUID id = (UUID)getArguments().getSerializable(ARG_ID);
+        mServerFetcher = new ServerFetcher(id, getActivity());
 
 
         new FetchItemsTask().execute();
@@ -103,7 +92,7 @@ public class MusicListFragment extends Fragment implements MediaController.Media
                     @Override
                     public void onSongDownloaded(FileHolder fileHolder, Song song) {
                         SongManager.get(getActivity()).updateSong(song);
-                        fileHolder.bindFile(song.getName(), song.getArtist(), song.getAlbum(), song.getArtwork());
+                        fileHolder.bindFile(song.getTitle(), song.getArtist(), song.getAlbum(), song.getArtwork());
                     }
                 }
         );
@@ -113,231 +102,14 @@ public class MusicListFragment extends Fragment implements MediaController.Media
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
-        View view = inflater.inflate(R.layout.fragment_ftp, container, false);
-        mRecyclerView = (RecyclerView)view.findViewById(R.id.ftp_recyclerview);
+        View view = inflater.inflate(R.layout.fragment_music_list, container, false);
+        mRecyclerView = (RecyclerView)view.findViewById(R.id.music_list_recyclerview);
         mRecyclerView.addItemDecoration(new SimpleDividerItemDecoration(getActivity()));
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         setupAdapter();
-        setController();
 
         return view;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (playIntent == null){
-            playIntent = new Intent(getActivity(), MusicService.class);
-            getActivity().bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
-            getActivity().startService(playIntent);
-        }
-    }
-
-    @Override
-    public void onResume(){
-        super.onResume();
-        if(paused){
-            setController();
-            paused=false;
-        }
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(onPrepareReceiver,
-                new IntentFilter("MEDIA_PLAYER_PREPARED"));
-    }
-
-    @Override
-    public void onPause(){
-        super.onPause();
-        paused=true;
-    }
-
-    @Override
-    public void onStop() {
-        mController.hide();
-        super.onStop();
-    }
-
-    @Override
-    public void onDestroyView() {
-        getActivity().stopService(playIntent);
-        mMusicSrv = null;
-        mSongDownloader.clearQueue();
-        super.onDestroyView();
-    }
-
-    @Override
-    public void onDestroy() {
-        getActivity().stopService(playIntent);
-        mMusicSrv = null;
-        getActivity().unbindService(musicConnection);
-        mSongDownloader.quit();
-        super.onDestroy();
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.fragment_ftp, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_end:
-                getActivity().stopService(playIntent);
-                mMusicSrv = null;
-                System.exit(0);
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-    /* Above methods for support.v4.fragment */
-
-    // Connects to the music service
-    private ServiceConnection musicConnection = new ServiceConnection(){
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            MusicBinder binder = (MusicBinder)service;
-            //get service
-            mMusicSrv = binder.getService();
-            //pass list
-            mMusicSrv.setList(mSongList, mCredentials.getWebaddress(), mDirectory, mUUID);
-            musicBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            musicBound = false;
-        }
-    };
-
-    /* Media Player Controller methods */
-    private void setController(){
-        if(mController == null) {
-            mController = new MusicController(getActivity());
-        }
-        mController.setPrevNextListeners(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                playNext();
-
-            }
-        }, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                playPrev();
-            }
-        });
-
-        mController.setMediaPlayer(this);
-        mController.setAnchorView(mRecyclerView);
-        mController.setEnabled(true);
-    }
-
-    //play next
-    private void playNext(){
-        mMusicSrv.playNext();
-        if(playbackPaused){
-            playbackPaused=false;
-            setController();
-        }
-      //  updateSubtitle(mMusicSrv.getCurrentPlayingSongName());
-    }
-
-    //play previous
-    private void playPrev(){
-        mMusicSrv.playPrev();
-        if(playbackPaused){
-            playbackPaused=false;
-            setController();
-        }
-     //   updateSubtitle(mMusicSrv.getCurrentPlayingSongName());
-    }
-
-    @Override
-    public void start() {
-        mMusicSrv.go();
-     //   updateSubtitle(mMusicSrv.getCurrentPlayingSongName());
-    }
-
-    @Override
-    public void pause() {
-        playbackPaused=true;
-        mMusicSrv.pausePlayer();
-    }
-
-    @Override
-    public int getDuration() {
-        if(mMusicSrv!=null && musicBound && mMusicSrv.isPng()) {
-            return mMusicSrv.getDur();
-        }
-        else{
-            return 0;
-        }
-    }
-
-    @Override
-    public int getCurrentPosition() {
-        if(mMusicSrv!=null && musicBound && mMusicSrv.isPng()) {
-            return mMusicSrv.getPosn();
-        }
-        else{
-            return 0;
-        }
-    }
-
-    @Override
-    public void seekTo(int pos) {
-        mMusicSrv.seek(pos);
-    }
-
-    @Override
-    public boolean isPlaying() {
-        if(mMusicSrv != null && musicBound){
-            return mMusicSrv.isPng();
-        }
-        else{
-            return false;
-        }
-    }
-
-    @Override
-    public int getBufferPercentage() {
-        return 0;
-    }
-
-    @Override
-    public boolean canPause() {
-        return true;
-    }
-
-    @Override
-    public boolean canSeekBackward() {
-        return true;
-    }
-
-    @Override
-    public boolean canSeekForward() {
-        return true;
-    }
-
-    @Override
-    public int getAudioSessionId() {
-        return 0;
-    }
-    /* Above methods for Media Player Controller */
-
-    /* Displays name of currently playing song */
-    private void updateSubtitle(String subtitle){
-        try {
-            subtitle = subtitle.replace(".mp3", "");
-            String fullSubtitle = "Now Playing: " + subtitle;
-            AppCompatActivity activity = (AppCompatActivity) getActivity();
-            activity.getSupportActionBar().setSubtitle(fullSubtitle);
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
     }
 
     /* Puts Songs List into RecyclerView */
@@ -377,20 +149,6 @@ public class MusicListFragment extends Fragment implements MediaController.Media
             }
         }
     }
-
-    private BroadcastReceiver onPrepareReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context c, Intent i) {
-            // When music player has been prepared, show controller
-            try{
-                mController.show(0);
-                updateSubtitle(mMusicSrv.getCurrentPlayingSongName());
-            }
-            catch (Exception e){
-                e.printStackTrace();
-            }
-        }
-    };
 
     /* Recycler View Holder and Adapter */
     private class FileHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
@@ -439,9 +197,7 @@ public class MusicListFragment extends Fragment implements MediaController.Media
         public void onClick(View v) {
             try {
                 int position = searchSongs(mSongTitle.getText().toString(), mSongs);
-
-                mMusicSrv.setSong(position);
-                mMusicSrv.playSong();
+                mCallbacks.onSongSelected(mSongs.get(position));
             }
             catch (Exception e){
                 Toast.makeText(
@@ -453,9 +209,9 @@ public class MusicListFragment extends Fragment implements MediaController.Media
         }
     }
 
-    private int searchSongs(String name, List<Song> songs){
+    private int searchSongs(String title, List<Song> songs){
         for(Song s:songs){
-            if(s.getName().equals(name)){
+            if(s.getTitle().equals(title)){
                 return songs.indexOf(s);
             }
         }
@@ -477,12 +233,12 @@ public class MusicListFragment extends Fragment implements MediaController.Media
 
         @Override
         public void onBindViewHolder(FileHolder holder, int position) {
-            String filename = mStrings.get(position).getName();
+            String songTitle = mStrings.get(position).getTitle();
             String artistname = mStrings.get(position).getArtist();
             String albumname = mStrings.get(position).getAlbum();
             String artwork = mStrings.get(position).getArtwork();
 
-            holder.bindFile(filename, artistname, albumname, artwork);
+            holder.bindFile(songTitle, artistname, albumname, artwork);
             mSongDownloader.queueSong(holder, mStrings.get(position));
             preloadSong(position);
         }

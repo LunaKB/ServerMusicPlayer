@@ -5,15 +5,15 @@ package com.moncrieffe.android.servermusicplayer.Song;
  */
 public class Song {
     private String mUrl;
-    private String mName;
+    private String mTitle;
     private String mDirectory;
     private String mArtist;
     private String mAlbum;
     private String mArtwork;
 
-    public Song(String url, String name, String directory, String artist, String album, String artwork){
+    public Song(String url, String title, String directory, String artist, String album, String artwork){
         mUrl = url;
-        mName = name;
+        mTitle = title;
         mDirectory = directory;
         mArtist = artist;
         mAlbum = album;
@@ -24,8 +24,8 @@ public class Song {
         return mUrl;
     }
 
-    public String getName() {
-        return mName;
+    public String getTitle() {
+        return mTitle;
     }
 
     public String getDirectory() {

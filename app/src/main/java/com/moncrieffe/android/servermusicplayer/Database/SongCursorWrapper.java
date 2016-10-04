@@ -16,13 +16,13 @@ public class SongCursorWrapper extends CursorWrapper{
 
     public Song getSong(){
         String url = getString(getColumnIndex(SongsTable.Cols.URL));
-        String name = getString(getColumnIndex(SongsTable.Cols.NAME));
+        String title = getString(getColumnIndex(SongsTable.Cols.TITLE));
         String directory = getString(getColumnIndex(SongsTable.Cols.DIRECTORY));
         String artist = getString(getColumnIndex(SongsTable.Cols.ARTIST));
         String album = getString(getColumnIndex(SongsTable.Cols.ALBUM));
         String  artwork = getString(getColumnIndex(SongsTable.Cols.ARTWORK));
 
-        Song s = new Song(url, name, directory, artist, album, artwork);
+        Song s = new Song(url, title, directory, artist, album, artwork);
         return s;
     }
 }

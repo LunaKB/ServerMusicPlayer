@@ -40,16 +40,16 @@ public class SongManager {
     }
 
     public void deleteSong(Song song){
-        mDatabase.delete(SongsTable.NAME, SongsTable.Cols.NAME + " = ?",
-                new String[]{song.getName()});
+        mDatabase.delete(SongsTable.NAME, SongsTable.Cols.URL + " = ?",
+                new String[]{song.getUrl()});
     }
 
     public void updateSong(Song song){
-        String name = song.getName();
+        String url = song.getUrl();
         ContentValues values = getContentValues(song);
 
         mDatabase.update(SongsTable.NAME, values,
-                SongsTable.Cols.NAME + " = ?", new String[]{name});
+                SongsTable.Cols.URL + " = ?", new String[]{url});
     }
 
     /* Getters */
@@ -71,10 +71,10 @@ public class SongManager {
         return songs;
     }
 
-    public Song getSong(String name){
+    public Song getSong(String url){
         SongCursorWrapper cursor = querySongs(
-                SongsTable.Cols.NAME + " = ?",
-                new String[]{name}
+                SongsTable.Cols.URL + " = ?",
+                new String[]{url}
         );
 
         try{
@@ -94,7 +94,7 @@ public class SongManager {
     private static ContentValues getContentValues(Song song){
         ContentValues values = new ContentValues();
         values.put(SongsTable.Cols.URL, song.getUrl());
-        values.put(SongsTable.Cols.NAME, song.getName());
+        values.put(SongsTable.Cols.TITLE, song.getTitle());
         values.put(SongsTable.Cols.DIRECTORY, song.getDirectory());
         values.put(SongsTable.Cols.ARTIST, song.getArtist());
         values.put(SongsTable.Cols.ALBUM, song.getAlbum());

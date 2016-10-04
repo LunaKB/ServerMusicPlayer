@@ -14,11 +14,11 @@ import java.util.List;
 
 /**
  * Created by Chaz-Rae on 9/7/2016.
+ *
  */
 public class LoginActivity extends AppCompatActivity{
     private List<Credentials> mCredentials;
     private EditText mWebAddress;
-    private Button mGo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,8 +37,8 @@ public class LoginActivity extends AppCompatActivity{
             e.printStackTrace();
         }
 
-        mGo = (Button)findViewById(R.id.go_button);
-        mGo.setOnClickListener(new View.OnClickListener() {
+        Button go = (Button) findViewById(R.id.go_button);
+        go.setOnClickListener(new View.OnClickListener() {
             Boolean found = false;
             @Override
             public void onClick(View v) {

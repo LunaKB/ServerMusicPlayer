@@ -14,19 +14,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:src="@drawable/music_player_title_trans"/>
+            android:src="@drawable/music_player_title_trans"
+            android:contentDescription="@string/login_title_image_description"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Enter Web Server Details"
+            android:text="@string/login_web_server_details"
             style="?android:listSeparatorTextViewStyle"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Address"
+            android:text="@string/login_web_address_title"
             style="?android:listSeparatorTextViewStyle"/>
 
         <EditText
@@ -41,6 +42,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Connect"/>
+            android:text="@string/login_connect_go_button"/>
     </LinearLayout>
 </ScrollView>

@@ -3,22 +3,26 @@ package com.moncrieffe.android.servermusicplayer;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
+import android.widget.MediaController;
+import android.widget.Toast;
 
 import com.moncrieffe.android.servermusicplayer.Song.Song;
+import com.moncrieffe.android.servermusicplayer.Song.SongManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 /**
  * Created by Chaz-Rae on 9/8/2016.
+ *
  */
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener,
         MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
@@ -26,11 +30,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private final IBinder mMusicBind = new MusicBinder();
     private MediaPlayer mMediaPlayer;
     private String mSongTitle = "";
-    private List<Song> mSongs;
+    private List<Song> mSongs = new ArrayList<>();
     private UUID mUUID;
-    private String mDirectory;
     private int mPosition;
-    private String mUrl;
+    private SongManager mSongManager;
+    private Song mCurrentSong;
+    private MediaController mController;
 
     @Override
     public void onCreate() {
@@ -60,8 +65,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public void onPrepared(MediaPlayer mp) {
         mp.start();
+        mController.show(0);
 
-        Intent notIntent = MusicListActivity.newIntent(this, mDirectory, mUUID);
+        Intent notIntent = DirectoryMenuActivity.newIntent(this, mUUID);
         notIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendInt = PendingIntent.getActivity(this, 0,
                 notIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -72,15 +78,11 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 .setSmallIcon(R.drawable.notification_play)
                 .setTicker(mSongTitle)
                 .setOngoing(true)
-                .setContentTitle("Playing")
+                .setContentTitle("Now Playing")
                 .setContentText(mSongTitle);
         Notification not = builder.build();
 
         startForeground(NOTIFY_ID, not);
-
-        // Broadcast intent to activity to let it know the media player has been prepared
-        Intent onPreparedIntent = new Intent("MEDIA_PLAYER_PREPARED");
-        LocalBroadcastManager.getInstance(this).sendBroadcast(onPreparedIntent);
     }
 
     @Override
@@ -93,31 +95,41 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
-        Log.i("mediaPlayer", "int what: " + what + "; int extra: " + extra);
         mp.reset();
         return false;
     }
 
-
-
     public void playSong(){
         mMediaPlayer.reset();
         //get song
-        String playUri = mUrl + mSongs.get(mPosition).getName();
+
+        if(mSongs.size() == 0 || (!mSongs.get(0).getDirectory().equals(mCurrentSong.getDirectory()))) {
+            mSongs = mSongManager.getSongs(mCurrentSong.getDirectory());
+        }
+
+        for (Song s : mSongs) {
+            if (s.getUrl().equals(mCurrentSong.getUrl())) {
+                mPosition = mSongs.indexOf(s);
+                break;
+            }
+        }
+
+        String playUri = mSongs.get(mPosition).getUrl();
         playUri = playUri.replace(" ", "%20");
-        mSongTitle = mSongs.get(mPosition).getName().replace(".mp3", "");
+        mSongTitle = mSongs.get(mPosition).getTitle();
 
         try {
             mMediaPlayer.setDataSource(playUri);
         }
         catch (Exception e){
-            Log.e("MUSIC SERVICE", "Error setting data source", e);
+            Toast.makeText(this, "Error setting data source", Toast.LENGTH_SHORT).show();
         }
         mMediaPlayer.prepareAsync();
     }
 
-    public void setSong(int songIndex){
-        mPosition = songIndex;
+    public void setSong(Song song){
+       // mPosition = songIndex;
+        mCurrentSong = song;
     }
 
     public void initMusicPlayer(){
@@ -130,10 +142,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mMediaPlayer.setOnErrorListener(this);
     }
 
-    public void setList(List<Song> songs, String webAddress, String directory, UUID uuid){
-        mSongs = songs;
-        mUrl = webAddress + directory + "/";
-        mDirectory = directory;
+    public void setList(Context context, UUID uuid){
+        mSongManager = SongManager.get(context);
         mUUID = uuid;
     }
 
@@ -174,6 +184,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         if(mPosition < 0){
             mPosition = mSongs.size()-1;
         }
+        mCurrentSong = mSongs.get(mPosition);
         playSong();
     }
 
@@ -182,10 +193,19 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         if(mPosition >= mSongs.size()){
             mPosition = 0;
         }
+        mCurrentSong = mSongs.get(mPosition);
         playSong();
     }
 
     public String getCurrentPlayingSongName(){
-        return mSongs.get(mPosition).getName();
+        return mSongs.get(mPosition).getTitle();
+    }
+
+    public void setController(MediaController controller){
+        mController = controller;
+    }
+
+    public void hideController(){
+        mController.hide();
     }
 }

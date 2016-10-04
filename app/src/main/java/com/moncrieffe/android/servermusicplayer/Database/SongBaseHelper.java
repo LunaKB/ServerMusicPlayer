@@ -10,7 +10,7 @@ import com.moncrieffe.android.servermusicplayer.Database.DbSchema.SongsTable;
  * Created by Chaz-Rae on 9/13/2016.
  */
 public class SongBaseHelper extends SQLiteOpenHelper {
-    private static  final int VERSION = 2;
+    private static  final int VERSION = 1;
     private static final String DATABASE_NAME = "songBase.db";
 
     public SongBaseHelper(Context context){
@@ -22,7 +22,7 @@ public class SongBaseHelper extends SQLiteOpenHelper {
         db.execSQL("create table " + SongsTable.NAME + "(" +
                 "_id integer primary key autoincrement, " +
                 SongsTable.Cols.URL + ", " +
-                SongsTable.Cols.NAME + ", " +
+                SongsTable.Cols.TITLE + ", " +
                 SongsTable.Cols.DIRECTORY + ", " +
                 SongsTable.Cols.ARTIST + ", " +
                 SongsTable.Cols.ALBUM + ", " +

@@ -27,7 +27,7 @@ public class DbSchema {
         public static final class Cols{
             public static final String URL = "url";
             public static final String DIRECTORY = "directory";
-            public static final String NAME = "name";
+            public static final String TITLE = "title";
             public static final String ARTIST = "artist";
             public static final String ALBUM = "album";
             public static final String ARTWORK = "artwork";

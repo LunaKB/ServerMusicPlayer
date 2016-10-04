@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_margin="8dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -10,32 +11,38 @@
         android:id="@+id/song_image"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:background="@color/primary_dark"/>
+        android:background="@color/primary_dark"
+        android:contentDescription="@string/list_item_album_image_description"/>
 
     <TextView
         android:id="@+id/song_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/song_image"
+        android:layout_toEndOf="@id/song_image"
         android:layout_marginLeft="10dp"
-        android:text="Song Title"/>
+        android:layout_marginStart="10dp"
+        tools:text="Song Title"/>
 
     <TextView
         android:id="@+id/song_artist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/song_image"
+        android:layout_toEndOf="@id/song_image"
         android:layout_below="@id/song_title"
         android:layout_marginLeft="10dp"
-        android:text="Song Artist"/>
+        android:layout_marginStart="10dp"
+        tools:text="Song Artist"/>
 
     <TextView
         android:id="@+id/song_album"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/song_image"
+        android:layout_toEndOf="@id/song_image"
         android:layout_below="@id/song_artist"
         android:layout_marginLeft="10dp"
-        android:text="Song Album"/>
-
+        android:layout_marginStart="10dp"
+        tools:text="Song Album"/>
 </RelativeLayout>
