@@ -41,7 +41,10 @@
             android:id="@+id/go_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
             android:layout_gravity="center"
-            android:text="@string/login_connect_go_button"/>
+            android:textColor="#FFFFFF"
+            android:text="@string/login_connect_go_button"
+            android:background="@drawable/button_pressed"/>
     </LinearLayout>
 </ScrollView>

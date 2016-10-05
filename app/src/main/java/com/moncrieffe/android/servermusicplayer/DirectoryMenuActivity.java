@@ -144,7 +144,6 @@ public class DirectoryMenuActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 playNext();
-
             }
         }, new View.OnClickListener() {
             @Override

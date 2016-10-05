@@ -26,5 +26,6 @@
         </activity>
 
         <service android:name="com.moncrieffe.android.servermusicplayer.MusicService"/>
+
     </application>
 </manifest>
