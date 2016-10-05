@@ -19,4 +19,10 @@ https://gist.github.com/polbins/e37206fbc444207c0e92
 
 http://stackoverflow.com/questions/25357040/android-mediacontroller-play-pause-button-and-seekbar-doesnt-refresh
 
+http://stackoverflow.com/questions/4047683/android-how-to-resume-an-app-from-a-notification/4048069#4048069
+
+https://developer.android.com/guide/topics/media/mediaplayer.html#audiofocus
+
+https://www.sitepoint.com/a-step-by-step-guide-to-building-an-android-audio-player-app/
+
 Uses Raspberry Pi Node Js Web Server
