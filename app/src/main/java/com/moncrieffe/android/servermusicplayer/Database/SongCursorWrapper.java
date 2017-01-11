@@ -20,9 +20,8 @@ public class SongCursorWrapper extends CursorWrapper{
         String directory = getString(getColumnIndex(SongsTable.Cols.DIRECTORY));
         String artist = getString(getColumnIndex(SongsTable.Cols.ARTIST));
         String album = getString(getColumnIndex(SongsTable.Cols.ALBUM));
-        String  artwork = getString(getColumnIndex(SongsTable.Cols.ARTWORK));
 
-        Song s = new Song(url, title, directory, artist, album, artwork);
+        Song s = new Song(url, title, directory, artist, album);
         return s;
     }
 }

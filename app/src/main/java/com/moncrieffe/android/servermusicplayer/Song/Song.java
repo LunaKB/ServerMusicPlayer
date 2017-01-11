@@ -9,15 +9,13 @@ public class Song {
     private String mDirectory;
     private String mArtist;
     private String mAlbum;
-    private String mArtwork;
 
-    public Song(String url, String title, String directory, String artist, String album, String artwork){
+    public Song(String url, String title, String directory, String artist, String album){
         mUrl = url;
         mTitle = title;
         mDirectory = directory;
         mArtist = artist;
         mAlbum = album;
-        mArtwork = artwork;
     }
 
     public String getUrl() {
@@ -38,9 +36,5 @@ public class Song {
 
     public String getAlbum() {
         return mAlbum;
-    }
-
-    public String getArtwork() {
-        return mArtwork;
     }
 }

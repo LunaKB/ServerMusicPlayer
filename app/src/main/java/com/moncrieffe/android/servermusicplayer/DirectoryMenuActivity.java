@@ -13,6 +13,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.MediaController;
 
 import com.moncrieffe.android.servermusicplayer.Directory.Directory;
@@ -164,6 +165,9 @@ public class DirectoryMenuActivity extends AppCompatActivity
             playbackPaused=false;
             setController();
         }
+
+        mCurrentSubtitle = mMusicSrv.getCurrentPlayingSongName();
+        updateSubtitle(mCurrentSubtitle);
     }
 
     //play previous
@@ -173,6 +177,9 @@ public class DirectoryMenuActivity extends AppCompatActivity
             playbackPaused=false;
             setController();
         }
+
+        mCurrentSubtitle = mMusicSrv.getCurrentPlayingSongName();
+        updateSubtitle(mCurrentSubtitle);
     }
 
     @Override
@@ -215,11 +222,6 @@ public class DirectoryMenuActivity extends AppCompatActivity
     public boolean isPlaying() {
         if(mMusicSrv != null && musicBound ){
             if(mMusicSrv.isPng()){
-
-                if(mCurrentSubtitle.equals("") || !mCurrentSubtitle.equals(mMusicSrv.getCurrentPlayingSongName())){
-                    mCurrentSubtitle = mMusicSrv.getCurrentPlayingSongName();
-                    updateSubtitle(mCurrentSubtitle);
-                }
                 return true;
             }
             else{
@@ -276,6 +278,7 @@ public class DirectoryMenuActivity extends AppCompatActivity
         if(playbackPaused){
             playbackPaused = false;
         }
+        updateSubtitle(song.getTitle());
     }
 
     /**
@@ -302,7 +305,6 @@ public class DirectoryMenuActivity extends AppCompatActivity
 
         @Override
         public int getCount() {
-            // Show 3 total pages.
             return mD.size();
         }
 

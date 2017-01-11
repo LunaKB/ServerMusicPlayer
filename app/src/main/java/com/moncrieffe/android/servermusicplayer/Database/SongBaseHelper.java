@@ -25,8 +25,7 @@ public class SongBaseHelper extends SQLiteOpenHelper {
                 SongsTable.Cols.TITLE + ", " +
                 SongsTable.Cols.DIRECTORY + ", " +
                 SongsTable.Cols.ARTIST + ", " +
-                SongsTable.Cols.ALBUM + ", " +
-                SongsTable.Cols.ARTWORK + ")"
+                SongsTable.Cols.ALBUM + ")"
         );
     }
 

@@ -98,7 +98,7 @@ public class SongManager {
         values.put(SongsTable.Cols.DIRECTORY, song.getDirectory());
         values.put(SongsTable.Cols.ARTIST, song.getArtist());
         values.put(SongsTable.Cols.ALBUM, song.getAlbum());
-        values.put(SongsTable.Cols.ARTWORK, song.getArtwork());
+        //values.put(SongsTable.Cols.ARTWORK, song.getArtwork());
 
         return values;
     }

@@ -9,12 +9,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.widget.MediaController;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.support.v4.content.LocalBroadcastManager;
 import android.view.KeyEvent;
-import android.widget.MediaController;
 import android.widget.Toast;
 
 import com.moncrieffe.android.servermusicplayer.Song.Song;
@@ -123,8 +122,6 @@ public class MusicService extends Service implements
         not.flags = Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
         startForeground(NOTIFY_ID, not);
 
-   //     Intent onAudioBecomingNoisy = new Intent("AUDIO_BECOMING_NOISY");
-   //     LocalBroadcastManager.getInstance(this).sendBroadcast(onAudioBecomingNoisy);
     }
 
     @Override
@@ -184,10 +181,9 @@ public class MusicService extends Service implements
 
     public void playSong(){
         mMediaPlayer.reset();
-        //get song
 
         if(mSongs.size() == 0 || (!mSongs.get(0).getDirectory().equals(mCurrentSong.getDirectory()))) {
-            mSongs = mSongManager.getSongs(mCurrentSong.getDirectory());
+            updateList();
         }
 
         for (Song s : mSongs) {
@@ -230,12 +226,17 @@ public class MusicService extends Service implements
 
     public void setSong(Song song){
         mCurrentSong = song;
+        updateList();
     }
 
     public void setList(Context context, UUID uuid){
         mSongManager = SongManager.get(context);
         mUUID = uuid;
         mContext = context;
+    }
+
+    public void updateList(){
+        mSongs = mSongManager.getSongs(mCurrentSong.getDirectory());
     }
 
     public String getCurrentPlayingSongName(){
@@ -276,6 +277,7 @@ public class MusicService extends Service implements
     }
 
     public void playPrev(){
+        updateList();
         mPosition--;
         if(mPosition < 0){
             mPosition = mSongs.size()-1;
@@ -285,6 +287,7 @@ public class MusicService extends Service implements
     }
 
     public void playNext(){
+        updateList();
         mPosition++;
         if(mPosition >= mSongs.size()){
             mPosition = 0;

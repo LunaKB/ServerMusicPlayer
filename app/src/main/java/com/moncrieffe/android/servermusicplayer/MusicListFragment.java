@@ -2,6 +2,8 @@ package com.moncrieffe.android.servermusicplayer;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -25,6 +27,8 @@ import com.moncrieffe.android.servermusicplayer.Song.SongDownloader;
 import com.moncrieffe.android.servermusicplayer.Song.SongManager;
 import com.squareup.picasso.Picasso;
 
+import wseemann.media.FFmpegMediaMetadataRetriever;
+
 /**
  * Created by Chaz-Rae on 9/6/2016.
  * RecyclerView for list of songs only
@@ -43,6 +47,7 @@ public class MusicListFragment extends Fragment {
     private ServerFetcher mServerFetcher;
     private ProgressDialog progressDialog;
     private SongDownloader<FileHolder> mSongDownloader;
+    private MusicService mMusicSrv;
 
     public interface Callbacks{
         void onSongSelected(Song song);
@@ -92,7 +97,9 @@ public class MusicListFragment extends Fragment {
                     @Override
                     public void onSongDownloaded(FileHolder fileHolder, Song song) {
                         SongManager.get(getActivity()).updateSong(song);
-                        fileHolder.bindFile(song.getTitle(), song.getArtist(), song.getAlbum(), song.getArtwork());
+                        mSongList = SongManager.get(getActivity()).getSongs(mDirectory);
+                        fileHolder.bindFile(song.getTitle(), song.getArtist(), song.getAlbum(), song.getUrl());
+                        fileHolder.setSongs(mSongList);
                     }
                 }
         );
@@ -158,6 +165,10 @@ public class MusicListFragment extends Fragment {
         private TextView mSongAlbum;
         private List<Song> mSongs;
 
+        public void setSongs(List<Song> songs){
+            mSongs = songs;
+        }
+
         public FileHolder(LayoutInflater inflater, ViewGroup container, List<Song> songs){
             super(inflater.inflate(R.layout.list_item_music, container, false));
             itemView.setOnClickListener(this);
@@ -179,7 +190,18 @@ public class MusicListFragment extends Fragment {
                 public void onGlobalLayout() {
                     int width = mImageView.getWidth();
                     int height = mImageView.getHeight();
-                    try {
+
+                    FFmpegMediaMetadataRetriever mmr = new FFmpegMediaMetadataRetriever();
+                    String songUrl = artwork.replace(" ", "%20");
+                    mmr.setDataSource(songUrl);
+                    byte[] artBytes = mmr.getEmbeddedPicture();
+                    if(artBytes!=null){
+                        Bitmap bm = BitmapFactory.decodeByteArray(artBytes, 0, artBytes.length);
+                        mImageView.setImageBitmap(bm);
+                    }
+                    mmr.release();
+
+              /*      try {
                         Picasso.with(getActivity())
                                 .load(artwork)
                                 .resize(width, height)
@@ -187,7 +209,7 @@ public class MusicListFragment extends Fragment {
                     }
                     catch (Exception e){
                         e.printStackTrace();
-                    }
+                    } */
                     mImageView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 }
             });
@@ -205,6 +227,7 @@ public class MusicListFragment extends Fragment {
                         "Error playing " + mSongTitle.getText().toString(),
                         Toast.LENGTH_SHORT)
                         .show();
+                e.printStackTrace();
             }
         }
     }
@@ -236,7 +259,7 @@ public class MusicListFragment extends Fragment {
             String songTitle = mStrings.get(position).getTitle();
             String artistname = mStrings.get(position).getArtist();
             String albumname = mStrings.get(position).getAlbum();
-            String artwork = mStrings.get(position).getArtwork();
+            String artwork = mStrings.get(position).getUrl();
 
             holder.bindFile(songTitle, artistname, albumname, artwork);
             mSongDownloader.queueSong(holder, mStrings.get(position));

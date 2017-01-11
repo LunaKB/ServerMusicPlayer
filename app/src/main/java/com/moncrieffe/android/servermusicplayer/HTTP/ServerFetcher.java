@@ -125,7 +125,7 @@ public class ServerFetcher {
         if(songList.size() == 0){
             for (int i = 0; i < strings.size(); i++) {
                 String url = formatUrl(c.getWebaddress(), directory_name, strings.get(i));
-                Song song = new Song(url, "", directory_name, "", "", "");
+                Song song = new Song(url, "", directory_name, "", "");//, "");
                 mSongManager.addSong(song);
             }
         }
@@ -154,7 +154,7 @@ public class ServerFetcher {
                     if (songList.get(i).equals(null)) {}
                 }
                 catch (Exception e){
-                    Song song = new Song(url, "", directory_name, "", "", "");
+                    Song song = new Song(url, "", directory_name, "", "");//, "");
                     mSongManager.addSong(song);
                 }
 
@@ -176,7 +176,7 @@ public class ServerFetcher {
                     if(!url.equals(songList.get(i).getUrl())){
                         mSongManager.deleteSong(songList.get(i));
 
-                        Song song = new Song(url, "", directory_name, "", "", "");
+                        Song song = new Song(url, "", directory_name, "", "");//, "");
                         mSongManager.addSong(song);
                     }
                 }
